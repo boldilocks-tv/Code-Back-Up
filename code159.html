@@ -246,6 +246,44 @@
       color: #555;
     }
 
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2e7d32;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      text-align: center;
+      max-width: 90%;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    .toast.error {
+      background: #b71c1c;
+    }
+
+    .fallback-link {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #666;
+      display: none;
+    }
+    .fallback-link a {
+      color: #ffaa66;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+
     @media (max-width: 768px) {
       .age-card { padding: 1.4rem 1.2rem; }
       .age-card h1 { font-size: 1.4rem; }
@@ -266,6 +304,8 @@
   </style>
 </head>
 <body>
+
+<div class="toast" id="toast">✅ Ready!</div>
 
 <div id="ageGate" class="age-gate">
   <div class="age-card">
@@ -305,6 +345,11 @@
     <div class="dual-btn-group">
       <button class="action-btn watch" id="watchBtn">▶ Watch Video</button>
     </div>
+    
+    <div class="fallback-link" id="fallbackLink">
+      <span style="color:#888;">If the page doesn't open, </span>
+      <a href="#" id="fallbackUrl" target="_blank">click here to open directly</a>
+    </div>
   </div>
 
   <div class="external-notice">
@@ -335,6 +380,26 @@
       }
     });
 
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    
+    var TARGET_URL = "https://zpic.st/album/Code-159.7R7KYN7B";
+    
+    // OPTION 1: Create a short URL at https://rebrandly.com or https://shorturl.at
+    // and paste it below (RECOMMENDED for mobile)
+    var SHORT_URL = "https://shorturl.at/your-custom-link"; // <-- REPLACE THIS
+    
+    // OPTION 2: Alternative short URL service
+    var SHORT_URL_2 = "https://tinyurl.com/your-link"; // <-- REPLACE THIS
+    
+    // OPTION 3: Redirect page on a clean domain
+    var REDIRECT_PAGE = "https://your-clean-domain.com/redirect.html"; // <-- REPLACE THIS
+    
+    // ============================================
+    // END CONFIGURATION
+    // ============================================
+
     var SMART_LINKS = [
       "https://omg10.com/4/8251888",
       "https://omg10.com/4/7512585",
@@ -342,11 +407,112 @@
       "https://omg10.com/4/7512545",
       "https://omg10.com/4/8198889"
     ];
-    var EXTERNAL_VIDEO_URL = "https://zpic.st/album/Code-159.7R7KYN7B";
+
+    var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     function openAd() {
       var adUrl = SMART_LINKS[Math.floor(Math.random() * SMART_LINKS.length)];
       window.open(adUrl, "_blank");
+    }
+
+    function showToast(message, isError) {
+      var toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast';
+      if (isError) {
+        toast.classList.add('error');
+      }
+      toast.classList.add('show');
+      setTimeout(function() {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    function openVideoPage() {
+      var methods = [];
+      
+      // Build method list based on device
+      if (isMobile) {
+        // Mobile: Try short URLs first (less likely to be blocked)
+        if (SHORT_URL && SHORT_URL !== "https://shorturl.at/your-custom-link") {
+          methods.push({ name: 'Short URL', url: SHORT_URL });
+        }
+        if (SHORT_URL_2 && SHORT_URL_2 !== "https://tinyurl.com/your-link") {
+          methods.push({ name: 'Short URL 2', url: SHORT_URL_2 });
+        }
+        if (REDIRECT_PAGE && REDIRECT_PAGE !== "https://your-clean-domain.com/redirect.html") {
+          methods.push({ name: 'Redirect Page', url: REDIRECT_PAGE });
+        }
+        // Mobile: Try Google redirect
+        methods.push({ name: 'Google Redirect', url: 'https://www.google.com/url?q=' + encodeURIComponent(TARGET_URL) + '&sa=D&source=editors' });
+        // Mobile: Try with no referrer
+        methods.push({ name: 'No Referrer', url: TARGET_URL, noReferrer: true });
+        // Mobile: Direct (last resort)
+        methods.push({ name: 'Direct', url: TARGET_URL });
+      } else {
+        // Desktop: Direct first (works fine)
+        methods.push({ name: 'Direct', url: TARGET_URL });
+        methods.push({ name: 'Short URL', url: SHORT_URL });
+        methods.push({ name: 'Google Redirect', url: 'https://www.google.com/url?q=' + encodeURIComponent(TARGET_URL) + '&sa=D&source=editors' });
+      }
+
+      var currentIndex = 0;
+      var fallbackShown = false;
+
+      function tryNextMethod() {
+        if (currentIndex >= methods.length) {
+          // All methods failed
+          if (!fallbackShown) {
+            fallbackShown = true;
+            showFallbackLink();
+            showToast('⚠️ Opening failed. Try the link below.', true);
+          }
+          return;
+        }
+
+        var method = methods[currentIndex];
+        currentIndex++;
+        
+        try {
+          if (method.noReferrer) {
+            // Open with no referrer using a blank page
+            var win = window.open('', '_blank');
+            if (win) {
+              win.document.write('<html><head><meta name="referrer" content="no-referrer"><meta http-equiv="refresh" content="0;url=' + method.url + '"></head><body>Loading...</body></html>');
+              win.document.close();
+            } else {
+              // Popup blocked, try next method
+              tryNextMethod();
+            }
+          } else {
+            var opened = window.open(method.url, '_blank');
+            if (!opened) {
+              // Popup blocked, try next
+              tryNextMethod();
+            }
+          }
+        } catch(e) {
+          // Method failed, try next
+          tryNextMethod();
+        }
+      }
+
+      tryNextMethod();
+    }
+
+    function showFallbackLink() {
+      var fallbackDiv = document.getElementById('fallbackLink');
+      var fallbackUrl = document.getElementById('fallbackUrl');
+      if (fallbackDiv && fallbackUrl) {
+        fallbackDiv.style.display = 'block';
+        fallbackUrl.href = TARGET_URL;
+        fallbackUrl.textContent = TARGET_URL;
+        // Also try to open on click
+        fallbackUrl.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.open(TARGET_URL, '_blank');
+        });
+      }
     }
 
     var ageGate = document.getElementById('ageGate');
@@ -361,6 +527,10 @@
       ageVerified = true;
       ageGate.classList.add('hidden');
       mainContent.style.display = 'block';
+      
+      if (isMobile) {
+        showToast('📱 Mobile mode active - using optimized opening method');
+      }
     }
 
     confirmBtn.addEventListener('click', function(e) { 
@@ -375,10 +545,14 @@
 
     watchBtn.addEventListener('click', function() {
       if (!ageVerified) return;
+      
+      // Open ad first
       openAd();
+      
+      // Then try to open the video page
       setTimeout(function() {
-        window.open(EXTERNAL_VIDEO_URL, "_blank");
-      }, 500);
+        openVideoPage();
+      }, 600);
     });
 
     mainContent.style.display = 'none';
