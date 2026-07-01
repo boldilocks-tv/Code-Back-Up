@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Code 159</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #0a0a0a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .age-gate {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.96);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    .age-gate.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .age-card {
+      background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+      border-radius: 32px;
+      max-width: 520px;
+      width: 90%;
+      padding: 2rem 1.8rem;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      animation: fadeSlideUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    @keyframes fadeSlideUp {
+      0% { opacity: 0; transform: translateY(30px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .warning-icon { margin-bottom: 1rem; }
+    .warning-icon svg { width: 64px; height: 64px; filter: drop-shadow(0 2px 8px rgba(220, 38, 38, 0.4)); }
+
+    .age-card h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff8a5c, #ff4d4d);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.75rem;
+    }
+    .age-card h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .warning-text {
+      color: #e5e5e5;
+      line-height: 1.5;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      background: rgba(255, 77, 77, 0.1);
+      padding: 1rem;
+      border-radius: 20px;
+      border-left: 3px solid #ff4d4d;
+      text-align: center;
+    }
+    .warning-text p { margin-bottom: 0.5rem; }
+    .warning-text strong { color: #ff8888; }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 1.5rem 0 1rem;
+    }
+    .btn-gate {
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 60px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+      font-family: inherit;
+    }
+    .btn-enter {
+      background: #2e7d32;
+      color: white;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+    }
+    .btn-enter:hover { background: #1b5e20; transform: scale(1.02); }
+    .btn-exit {
+      background: #8b0000;
+      color: white;
+      box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+    }
+    .btn-exit:hover { background: #a52a2a; transform: scale(1.02); }
+
+    .disclaimer {
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: 1rem;
+      border-top: 1px solid #2a2a2a;
+      padding-top: 1rem;
+      text-align: center;
+    }
+
+    .landing-card {
+      max-width: 720px;
+      width: 100%;
+      display: none;
+      background: #121212;
+      border-radius: 36px;
+      padding: 2rem 1.5rem 1.8rem;
+      box-shadow: 0 20px 40px -12px #000000cc;
+      border: 1px solid #2a2a2a;
+    }
+
+    .action-hero {
+      background: linear-gradient(145deg, #1e1e1e, #0e0e0e);
+      border-radius: 28px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      border: 1px solid #333;
+      box-shadow: inset 0 1px 0 #3a3a3a;
+    }
+
+    .action-hero .big-icon {
+      font-size: 3.8rem;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .action-hero h2 {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: -0.3px;
+      margin-bottom: 0.3rem;
+      background: linear-gradient(135deg, #ffb3b3, #ff6b6b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .action-hero p {
+      color: #aaa;
+      font-size: 1rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .dual-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+    .action-btn {
+      background: #222;
+      border: 1px solid #3a3a3a;
+      padding: 14px 32px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #eee;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      min-width: 160px;
+      justify-content: center;
+    }
+    .action-btn:active { transform: scale(0.96); }
+    .action-btn.watch {
+      background: #b71c1c;
+      border-color: #e53935;
+      color: white;
+    }
+    .action-btn.watch:hover { background: #d32f2f; }
+
+    .external-notice {
+      margin-top: 1.8rem;
+      background: rgba(20, 20, 30, 0.9);
+      border-radius: 18px;
+      padding: 0.9rem 1.2rem;
+      border-left: 4px solid #ffa500;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: #ccc;
+    }
+    .external-icon {
+      flex-shrink: 0;
+      background: #ffa50020;
+      width: 32px;
+      height: 32px;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .external-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: #ffaa33;
+      stroke-width: 1.8;
+      fill: none;
+    }
+    .external-text { flex: 1; text-align: center; }
+    .external-text strong { color: #ffaa66; }
+    .content-badge {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.7rem;
+      color: #555;
+    }
+
+    @media (max-width: 768px) {
+      .age-card { padding: 1.4rem 1.2rem; }
+      .age-card h1 { font-size: 1.4rem; }
+      .age-card h2 { font-size: 1.05rem; }
+      .warning-text { font-size: 0.8rem; padding: 0.8rem; }
+      .btn-gate { padding: 8px 20px; font-size: 0.85rem; }
+      .landing-card { padding: 1.2rem 1rem; }
+      .action-hero { padding: 1.5rem 1rem; }
+      .action-btn { padding: 12px 20px; font-size: 1rem; min-width: 140px; }
+      .action-hero h2 { font-size: 1.4rem; }
+    }
+    @media (max-width: 480px) {
+      .age-card { padding: 1.2rem 1rem; }
+      .age-card h1 { font-size: 1.25rem; }
+      .action-btn { padding: 10px 16px; font-size: 0.9rem; min-width: 120px; }
+      .external-notice { font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="ageGate" class="age-gate">
+  <div class="age-card">
+    <div class="warning-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#ff4d4d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M2 17L12 22L22 17" stroke="#ff4d4d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M2 12L12 17L22 12" stroke="#ff8a5c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="12" cy="12" r="2" fill="#ff4d4d" stroke="none"/>
+      </svg>
+    </div>
+    <h1>⚠️ RESTRICTED AREA</h1>
+    <h2>You must be 18+ to continue</h2>
+    <div class="warning-text">
+      <p><strong>🔞 Adult Content Warning</strong></p>
+      <p>This page contains video material intended for mature audiences only.<br>
+      By entering, you confirm that you are <strong>at least 18 years old</strong>.</p>
+      <p>Viewer discretion is strongly advised.</p>
+    </div>
+    <div class="button-group">
+      <button id="confirmEnterBtn" class="btn-gate btn-enter">✔ I AM 18+ & ENTER</button>
+      <button id="exitSiteBtn" class="btn-gate btn-exit">✖ EXIT / I'M UNDER 18</button>
+    </div>
+    <div class="disclaimer">
+      By clicking "I AM 18+" you agree to our terms and confirm your legal age. 
+      This site uses cookies and may display third-party links.
+    </div>
+  </div>
+</div>
+
+<div class="landing-card" id="mainContent">
+  <div class="action-hero">
+    <div class="big-icon">🎬</div>
+    <h2>Watch All Videos</h2>
+    <p>🔞 Exclusive content · Click to access</p>
+
+    <div class="dual-btn-group">
+      <button class="action-btn watch" id="watchBtn">▶ Watch Video</button>
+    </div>
+  </div>
+
+  <div class="external-notice">
+    <div class="external-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="external-text">
+      <strong>📡 External Hosting Notice:</strong> All video content is hosted on external servers. We do <strong>not host, upload, or store</strong> any video files. This platform provides embedded links to third-party content.
+    </div>
+  </div>
+  <div class="content-badge">🔞 18+ Only — Mature Content | Embed-only platform</div>
+</div>
+
+<script>
+  (function() {
+    // Disable right click / dev tools
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+    document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+          (e.ctrlKey && e.key === 'u') || (e.ctrlKey && e.key === 's')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    var SMART_LINKS = [
+      "https://omg10.com/4/8251888",
+      "https://omg10.com/4/7512585",
+      "https://omg10.com/4/8257954",
+      "https://omg10.com/4/7512545",
+      "https://omg10.com/4/8198889"
+    ];
+    var EXTERNAL_VIDEO_URL = "https://zpic.st/album/Code-159.7R7KYN7B";
+
+    function openAd() {
+      var adUrl = SMART_LINKS[Math.floor(Math.random() * SMART_LINKS.length)];
+      window.open(adUrl, "_blank");
+    }
+
+    var ageGate = document.getElementById('ageGate');
+    var mainContent = document.getElementById('mainContent');
+    var confirmBtn = document.getElementById('confirmEnterBtn');
+    var exitBtn = document.getElementById('exitSiteBtn');
+    var watchBtn = document.getElementById('watchBtn');
+
+    var ageVerified = false;
+
+    function unlock() {
+      ageVerified = true;
+      ageGate.classList.add('hidden');
+      mainContent.style.display = 'block';
+    }
+
+    confirmBtn.addEventListener('click', function(e) { 
+      e.preventDefault(); 
+      unlock(); 
+    });
+    
+    exitBtn.addEventListener('click', function(e) { 
+      e.preventDefault(); 
+      window.location.href = "https://www.google.com"; 
+    });
+
+    watchBtn.addEventListener('click', function() {
+      if (!ageVerified) return;
+      openAd();
+      setTimeout(function() {
+        window.open(EXTERNAL_VIDEO_URL, "_blank");
+      }, 500);
+    });
+
+    mainContent.style.display = 'none';
+  })();
+</script>
+</body>
+</html>
