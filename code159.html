@@ -181,7 +181,12 @@
       gap: 1rem;
       justify-content: center;
       margin-top: 0.5rem;
+      transition: all 0.3s ease;
     }
+    .dual-btn-group.hidden {
+      display: none;
+    }
+
     .action-btn {
       background: #222;
       border: 1px solid #3a3a3a;
@@ -206,6 +211,21 @@
       color: white;
     }
     .action-btn.watch:hover { background: #d32f2f; }
+    .action-btn.watch:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(0.6);
+    }
+    .action-btn.watch.ready {
+      background: #2e7d32;
+      border-color: #43a047;
+      animation: pulse-green 1.5s infinite;
+    }
+    @keyframes pulse-green {
+      0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.4); }
+      70% { box-shadow: 0 0 0 15px rgba(46, 125, 50, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+    }
 
     .external-notice {
       margin-top: 1.8rem;
@@ -272,16 +292,83 @@
       background: #b71c1c;
     }
 
-    .fallback-link {
-      margin-top: 1rem;
-      font-size: 0.75rem;
-      color: #666;
+    /* Link Display */
+    .link-display {
+      margin-top: 1.5rem;
+      padding: 1.2rem;
+      background: #0a0a2e;
+      border-radius: 16px;
+      border: 2px solid #ffaa33;
       display: none;
+      animation: fadeIn 0.5s ease;
     }
-    .fallback-link a {
+    .link-display.show {
+      display: block;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .link-display .label {
       color: #ffaa66;
-      text-decoration: underline;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .link-display .link-box {
+      background: #0a0a0a;
+      padding: 12px 16px;
+      border-radius: 12px;
       word-break: break-all;
+      color: #66ffaa;
+      font-size: 0.85rem;
+      border: 1px solid #1a1a4a;
+      user-select: all;
+      cursor: pointer;
+      font-family: monospace;
+    }
+    .link-display .link-box:active {
+      background: #1a1a1a;
+    }
+    .link-display .copy-btn-link {
+      margin-top: 0.7rem;
+      background: #ffaa33;
+      border: none;
+      color: #0a0a0a;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .link-display .copy-btn-link:active {
+      transform: scale(0.95);
+    }
+    .link-display .open-btn-link {
+      margin-top: 0.7rem;
+      background: #2e7d32;
+      border: none;
+      color: white;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 8px;
+    }
+    .link-display .open-btn-link:active {
+      transform: scale(0.95);
+    }
+    .link-display .btn-group-link {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 0.5rem;
     }
 
     @media (max-width: 768px) {
@@ -294,12 +381,15 @@
       .action-hero { padding: 1.5rem 1rem; }
       .action-btn { padding: 12px 20px; font-size: 1rem; min-width: 140px; }
       .action-hero h2 { font-size: 1.4rem; }
+      .link-display .link-box { font-size: 0.7rem; padding: 10px 12px; }
     }
     @media (max-width: 480px) {
       .age-card { padding: 1.2rem 1rem; }
       .age-card h1 { font-size: 1.25rem; }
       .action-btn { padding: 10px 16px; font-size: 0.9rem; min-width: 120px; }
       .external-notice { font-size: 0.7rem; }
+      .link-display .btn-group-link { flex-direction: column; align-items: center; }
+      .link-display .open-btn-link { margin-left: 0; }
     }
   </style>
 </head>
@@ -342,13 +432,18 @@
     <h2>Watch All Videos</h2>
     <p>🔞 Exclusive content · Click to access</p>
 
-    <div class="dual-btn-group">
+    <div class="dual-btn-group" id="btnGroup">
       <button class="action-btn watch" id="watchBtn">▶ Watch Video</button>
     </div>
-    
-    <div class="fallback-link" id="fallbackLink">
-      <span style="color:#888;">If the page doesn't open, </span>
-      <a href="#" id="fallbackUrl" target="_blank">click here to open directly</a>
+
+    <!-- Link Display -->
+    <div class="link-display" id="linkDisplay">
+      <div class="label">🔗 Your Video Link</div>
+      <div class="link-box" id="linkBox">https://zpic.st/album/Code-159.7R7KYN7B</div>
+      <div class="btn-group-link">
+        <button class="copy-btn-link" id="copyLinkBtn">📋 Copy Link</button>
+        <button class="open-btn-link" id="openLinkBtn">🚀 Open Link</button>
+      </div>
     </div>
   </div>
 
@@ -384,22 +479,8 @@
     // CONFIGURATION
     // ============================================
     
-    var TARGET_URL = "https://shorten.as/9Wu0C";
+    var TARGET_URL = "https://anon.to/ofw88V";
     
-    // OPTION 1: Create a short URL at https://rebrandly.com or https://shorturl.at
-    // and paste it below (RECOMMENDED for mobile)
-    var SHORT_URL = "https://shorturl.at/your-custom-link"; // <-- REPLACE THIS
-    
-    // OPTION 2: Alternative short URL service
-    var SHORT_URL_2 = "https://tinyurl.com/your-link"; // <-- REPLACE THIS
-    
-    // OPTION 3: Redirect page on a clean domain
-    var REDIRECT_PAGE = "https://your-clean-domain.com/redirect.html"; // <-- REPLACE THIS
-    
-    // ============================================
-    // END CONFIGURATION
-    // ============================================
-
     var SMART_LINKS = [
       "https://omg10.com/4/8251888",
       "https://omg10.com/4/7512585",
@@ -408,7 +489,30 @@
       "https://omg10.com/4/8198889"
     ];
 
-    var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    // ============================================
+    // DOM REFS
+    // ============================================
+    
+    var ageGate = document.getElementById('ageGate');
+    var mainContent = document.getElementById('mainContent');
+    var confirmBtn = document.getElementById('confirmEnterBtn');
+    var exitBtn = document.getElementById('exitSiteBtn');
+    var watchBtn = document.getElementById('watchBtn');
+    var btnGroup = document.getElementById('btnGroup');
+    var linkDisplay = document.getElementById('linkDisplay');
+    var linkBox = document.getElementById('linkBox');
+    var copyLinkBtn = document.getElementById('copyLinkBtn');
+    var openLinkBtn = document.getElementById('openLinkBtn');
+    var toast = document.getElementById('toast');
+
+    var ageVerified = false;
+    var countdownInterval = null;
+    var isCountingDown = false;
+    var isReady = false;
+
+    // ============================================
+    // FUNCTIONS
+    // ============================================
 
     function openAd() {
       var adUrl = SMART_LINKS[Math.floor(Math.random() * SMART_LINKS.length)];
@@ -416,7 +520,6 @@
     }
 
     function showToast(message, isError) {
-      var toast = document.getElementById('toast');
       toast.textContent = message;
       toast.className = 'toast';
       if (isError) {
@@ -428,109 +531,97 @@
       }, 4000);
     }
 
-    function openVideoPage() {
-      var methods = [];
-      
-      // Build method list based on device
-      if (isMobile) {
-        // Mobile: Try short URLs first (less likely to be blocked)
-        if (SHORT_URL && SHORT_URL !== "https://shorturl.at/your-custom-link") {
-          methods.push({ name: 'Short URL', url: SHORT_URL });
-        }
-        if (SHORT_URL_2 && SHORT_URL_2 !== "https://tinyurl.com/your-link") {
-          methods.push({ name: 'Short URL 2', url: SHORT_URL_2 });
-        }
-        if (REDIRECT_PAGE && REDIRECT_PAGE !== "https://your-clean-domain.com/redirect.html") {
-          methods.push({ name: 'Redirect Page', url: REDIRECT_PAGE });
-        }
-        // Mobile: Try Google redirect
-        methods.push({ name: 'Google Redirect', url: 'https://www.google.com/url?q=' + encodeURIComponent(TARGET_URL) + '&sa=D&source=editors' });
-        // Mobile: Try with no referrer
-        methods.push({ name: 'No Referrer', url: TARGET_URL, noReferrer: true });
-        // Mobile: Direct (last resort)
-        methods.push({ name: 'Direct', url: TARGET_URL });
-      } else {
-        // Desktop: Direct first (works fine)
-        methods.push({ name: 'Direct', url: TARGET_URL });
-        methods.push({ name: 'Short URL', url: SHORT_URL });
-        methods.push({ name: 'Google Redirect', url: 'https://www.google.com/url?q=' + encodeURIComponent(TARGET_URL) + '&sa=D&source=editors' });
-      }
-
-      var currentIndex = 0;
-      var fallbackShown = false;
-
-      function tryNextMethod() {
-        if (currentIndex >= methods.length) {
-          // All methods failed
-          if (!fallbackShown) {
-            fallbackShown = true;
-            showFallbackLink();
-            showToast('⚠️ Opening failed. Try the link below.', true);
-          }
-          return;
-        }
-
-        var method = methods[currentIndex];
-        currentIndex++;
-        
-        try {
-          if (method.noReferrer) {
-            // Open with no referrer using a blank page
-            var win = window.open('', '_blank');
-            if (win) {
-              win.document.write('<html><head><meta name="referrer" content="no-referrer"><meta http-equiv="refresh" content="0;url=' + method.url + '"></head><body>Loading...</body></html>');
-              win.document.close();
-            } else {
-              // Popup blocked, try next method
-              tryNextMethod();
-            }
-          } else {
-            var opened = window.open(method.url, '_blank');
-            if (!opened) {
-              // Popup blocked, try next
-              tryNextMethod();
-            }
-          }
-        } catch(e) {
-          // Method failed, try next
-          tryNextMethod();
-        }
-      }
-
-      tryNextMethod();
-    }
-
-    function showFallbackLink() {
-      var fallbackDiv = document.getElementById('fallbackLink');
-      var fallbackUrl = document.getElementById('fallbackUrl');
-      if (fallbackDiv && fallbackUrl) {
-        fallbackDiv.style.display = 'block';
-        fallbackUrl.href = TARGET_URL;
-        fallbackUrl.textContent = TARGET_URL;
-        // Also try to open on click
-        fallbackUrl.addEventListener('click', function(e) {
-          e.preventDefault();
-          window.open(TARGET_URL, '_blank');
+    function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          showToast('✅ Link copied to clipboard!');
+        }).catch(function() {
+          fallbackCopy(text);
         });
+      } else {
+        fallbackCopy(text);
       }
     }
 
-    var ageGate = document.getElementById('ageGate');
-    var mainContent = document.getElementById('mainContent');
-    var confirmBtn = document.getElementById('confirmEnterBtn');
-    var exitBtn = document.getElementById('exitSiteBtn');
-    var watchBtn = document.getElementById('watchBtn');
+    function fallbackCopy(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('✅ Link copied to clipboard!');
+      } catch(e) {
+        showToast('⚠️ Please copy the link manually', true);
+      }
+      document.body.removeChild(textarea);
+    }
 
-    var ageVerified = false;
+    function showLinkAndHideButton() {
+      // Show link
+      linkDisplay.classList.add('show');
+      linkBox.textContent = TARGET_URL;
+      
+      // Hide the button group
+      btnGroup.classList.add('hidden');
+      
+      showToast('🔗 Link is ready! Copy or open it.', false);
+    }
+
+    function resetUI() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+      isCountingDown = false;
+      isReady = false;
+      watchBtn.disabled = false;
+      watchBtn.textContent = '▶ Watch Video';
+      watchBtn.className = 'action-btn watch';
+      btnGroup.classList.remove('hidden');
+      linkDisplay.classList.remove('show');
+    }
+
+    function startCountdown() {
+      if (isCountingDown) return;
+      
+      isCountingDown = true;
+      isReady = false;
+      watchBtn.disabled = true;
+      watchBtn.textContent = '⏳ 5s';
+      watchBtn.className = 'action-btn watch';
+      
+      var seconds = 5;
+      
+      countdownInterval = setInterval(function() {
+        seconds--;
+        if (seconds > 0) {
+          watchBtn.textContent = '⏳ ' + seconds + 's';
+        } else {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+          isCountingDown = false;
+          isReady = true;
+          watchBtn.disabled = false;
+          watchBtn.textContent = '▶ WATCH NOW!';
+          watchBtn.className = 'action-btn watch ready';
+          showToast('✅ Click WATCH NOW! to continue', false);
+        }
+      }, 1000);
+    }
+
+    // ============================================
+    // AGE GATE
+    // ============================================
 
     function unlock() {
       ageVerified = true;
       ageGate.classList.add('hidden');
       mainContent.style.display = 'block';
-      
-      if (isMobile) {
-        showToast('📱 Mobile mode active - using optimized opening method');
-      }
+      resetUI();
+      showToast('📱 Click "Watch Video" to start', false);
     }
 
     confirmBtn.addEventListener('click', function(e) { 
@@ -543,17 +634,52 @@
       window.location.href = "https://www.google.com"; 
     });
 
+    // ============================================
+    // WATCH BUTTON - ADS ON BOTH CLICKS
+    // ============================================
+
     watchBtn.addEventListener('click', function() {
       if (!ageVerified) return;
       
-      // Open ad first
-      openAd();
+      // If countdown is running, ignore
+      if (isCountingDown) return;
       
-      // Then try to open the video page
-      setTimeout(function() {
-        openVideoPage();
-      }, 600);
+      // If in "WATCH NOW!" state, open ads and show link
+      if (isReady) {
+        // Open ads
+        openAd();
+        // Show the link and hide button
+        showLinkAndHideButton();
+        return;
+      }
+      
+      // First click: Open ads AND start countdown
+      openAd(); // Open ads on first click
+      startCountdown(); // Start countdown
     });
+
+    // ============================================
+    // LINK ACTIONS
+    // ============================================
+
+    copyLinkBtn.addEventListener('click', function() {
+      copyToClipboard(TARGET_URL);
+    });
+
+    linkBox.addEventListener('click', function() {
+      copyToClipboard(TARGET_URL);
+    });
+
+    openLinkBtn.addEventListener('click', function() {
+      var win = window.open(TARGET_URL, '_blank');
+      if (!win) {
+        window.location.href = TARGET_URL;
+      }
+    });
+
+    // ============================================
+    // INIT
+    // ============================================
 
     mainContent.style.display = 'none';
   })();
