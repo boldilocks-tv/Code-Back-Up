@@ -467,7 +467,7 @@
     <!-- Link Display -->
     <div class="link-display" id="linkDisplay">
       <div class="label">🔗 Your Video Link</div>
-      <div class="link-box" id="linkBox">https://zpic.st/album/Code-159.7R7KYN7B</div>
+      <div class="link-box" id="linkBox">https://zpic.st/album/Code-165.7R7KYi0T</div>
       <div class="btn-group-link">
         <button class="copy-btn-link" id="copyLinkBtn">📋 Copy Link</button>
         <button class="open-btn-link" id="openLinkBtn">🚀 Open Link</button>
@@ -509,7 +509,7 @@
     });
 
     // ============================================
-    // CONFIGURATION
+    // CONFIGURATION - ALL 10 ADS
     // ============================================
     
     var TARGET_URL = "https://zpic.st/album/Code-165.7R7KYi0T";
@@ -518,8 +518,13 @@
       "https://omg10.com/4/8251888",
       "https://omg10.com/4/7512585",
       "https://omg10.com/4/8257954",
+      "https://omg10.com/4/1415254",
       "https://omg10.com/4/7512545",
-      "https://omg10.com/4/8198889"
+      "https://omg10.com/4/8198889",
+      "https://omg10.com/4/8236017",
+      "https://omg10.com/4/8247899",
+      "https://omg10.com/4/8195375",
+      "https://omg10.com/4/8257975"
     ];
 
     // ============================================
@@ -544,11 +549,30 @@
     var isReady = false;
 
     // ============================================
-    // FUNCTIONS
+    // SIMPLE RANDOMIZATION - SHUFFLE ALL 10 ADS
     // ============================================
 
+    function shuffleArray(array) {
+      var currentIndex = array.length;
+      var temporaryValue, randomIndex;
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+      }
+      return array;
+    }
+
+    // Get a truly random ad from all 10
+    function getRandomAd() {
+      var shuffled = shuffleArray(SMART_LINKS.slice(0));
+      return shuffled[Math.floor(Math.random() * shuffled.length)];
+    }
+
     function openAd() {
-      var adUrl = SMART_LINKS[Math.floor(Math.random() * SMART_LINKS.length)];
+      var adUrl = getRandomAd();
       window.open(adUrl, "_blank");
     }
 
@@ -593,13 +617,9 @@
     }
 
     function showLinkAndHideButton() {
-      // Show link
       linkDisplay.classList.add('show');
       linkBox.textContent = TARGET_URL;
-      
-      // Hide the button group
       btnGroup.classList.add('hidden');
-      
       showToast('🔗 Link is ready! Copy or open it.', false);
     }
 
@@ -668,27 +688,24 @@
     });
 
     // ============================================
-    // WATCH BUTTON - ADS ON BOTH CLICKS
+    // WATCH BUTTON - RANDOMIZED ADS FROM 10
     // ============================================
 
     watchBtn.addEventListener('click', function() {
       if (!ageVerified) return;
       
-      // If countdown is running, ignore
       if (isCountingDown) return;
       
-      // If in "WATCH NOW!" state, open ads and show link
       if (isReady) {
-        // Open ads
+        // Open randomized ad from all 10
         openAd();
-        // Show the link and hide button
         showLinkAndHideButton();
         return;
       }
       
-      // First click: Open ads AND start countdown
-      openAd(); // Open ads on first click
-      startCountdown(); // Start countdown
+      // First click: Open randomized ad + start countdown
+      openAd();
+      startCountdown();
     });
 
     // ============================================
